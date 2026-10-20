@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>Генератор штампа электронной подписи</title>
+  <style>
+    :root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#172033;background:#f4f6fa;font-synthesis:none}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:310px}
+    .page{max-width:1350px;margin:0 auto;padding:48px 32px 65px}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;background:#e8eefc;color:#3154a2;font-size:12px;font-weight:800;letter-spacing:.11em;padding:9px 13px;border-radius:100px;text-transform:uppercase}
+    .eyebrow:before{content:"";width:7px;height:7px;border-radius:50%;background:#5778db}
+    h1{font-size:clamp(27px,3.1vw,42px);letter-spacing:-.045em;line-height:1.13;margin:19px 0 11px}
+    .subtitle{color:#6c7587;font-size:15px;line-height:1.65;max-width:670px;margin:0 0 30px}
+    .workspace{display:grid;grid-template-columns:minmax(315px,400px) minmax(0,1fr);gap:24px;align-items:start}
+    .panel{background:white;border:1px solid #e2e7ef;box-shadow:0 14px 42px rgba(27,45,80,.035);border-radius:19px;overflow:hidden}
+    .panelhead{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:22px 24px;border-bottom:1px solid #edf0f5}
+    .panelhead h2{font-size:17px;letter-spacing:-.025em;margin:0}.minor{font-size:12px;color:#8c96a7}
+    .fields{padding:22px 24px 24px}.field{margin-bottom:18px}.field:last-child{margin-bottom:0}
+    label{display:block;font-size:13px;font-weight:700;margin-bottom:9px;color:#374154}
+    input,select{background:#fcfdff;border:1px solid #dfe5ee;outline:0;border-radius:10px;padding:13px 14px;min-height:46px;font:inherit;font-size:14px;width:100%;color:#192439;transition:border-color .15s,box-shadow .15s}
+    input:hover,select:hover{border-color:#bfc9d8}input:focus,select:focus{border-color:#4874dd;box-shadow:0 0 0 3px rgba(65,107,210,.13)}
+    .dategrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.help{font-size:12px;line-height:1.55;color:#8893a3;margin:6px 0 0}
+    .previewPanel{min-width:0}.stage{padding:37px 23px 30px;background:radial-gradient(circle at 15% 12%,#fff 0,#f8fafd 55%,#f4f7fc 100%);min-height:380px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .paper{max-width:650px;width:100%;border-radius:4px;box-shadow:0 15px 45px rgba(29,45,76,.10);line-height:0;background:#fff}
+    svg{display:block;width:100%;height:auto}.substage{color:#9aa4b1;font-size:12px;margin-top:18px;text-align:center}
+    .export{border-top:1px solid #edf0f5;padding:21px 24px 24px}.exporthead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+    .exporthead strong{font-size:14px}.quality{display:flex;align-items:center;gap:8px}.quality label{font-size:12px;color:#768196;margin:0;white-space:nowrap}.quality select{width:auto;padding:8px 29px 8px 10px;min-height:36px;font-size:12px}
+    .actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.btn{border:1px solid #dce3ec;cursor:pointer;border-radius:10px;padding:12px 10px;background:#fff;color:#263044;font-size:13px;font-weight:750;display:flex;align-items:center;justify-content:center;gap:7px;transition:transform .13s,background .13s,box-shadow .13s;min-width:0}
+    .btn:hover{transform:translateY(-1px);background:#f7f9fd;box-shadow:0 3px 8px #1c2c4910}.btn:active{transform:translateY(0)}.btn.primary{background:#213e86;color:white;border-color:#213e86}.btn.primary:hover{background:#2d50a7}.btn:disabled{cursor:not-allowed;opacity:.5;transform:none}
+    .btn svg{width:16px;height:16px;flex-shrink:0}.outline{background:transparent;border:0;color:#5876bd;cursor:pointer;font-weight:700;padding:5px 0}.outline:hover{text-decoration:underline}
+    .notice{margin-top:21px;padding:16px 18px;border:1px solid #e5eaf0;border-radius:13px;color:#6f7a8c;font-size:13px;line-height:1.65;background:#fff}.notice b{color:#3f5067}
+    .error{font-size:12px;color:#c03636;margin-top:7px;min-height:1em;display:none}.error.active{display:block}
+    .footer{font-size:12px;color:#9aa5b3;padding-top:22px}
+    @media(max-width:900px){.workspace{grid-template-columns:1fr}.page{padding:30px 19px}.stage{min-height:280px}.actions{grid-template-columns:1fr 1fr 1fr}}
+    @media(max-width:500px){.panelhead,.fields,.export{padding-left:16px;padding-right:16px}.stage{padding:26px 10px}.actions{grid-template-columns:1fr}.dategrid{grid-template-columns:1fr}.exporthead{flex-wrap:wrap}}
+    @media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}html,body{background:#fff!important;width:100%;margin:0;padding:0}.page{margin:0;padding:0;max-width:none}.eyebrow,h1,.subtitle,.panelhead,.fields,.export,.notice,.footer{display:none!important}.workspace,.previewPanel,.panel,.stage,.paper{display:block!important;margin:0!important;padding:0!important;box-shadow:none!important;border:0!important;background:white!important;min-height:0!important;max-width:none!important}.paper{width:170mm!important}.paper svg{width:170mm!important;height:auto!important}.substage{display:none!important}@page{margin:8mm}}
+  </style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <span class="eyebrow">Инструменты для документов</span>
+    <h1>Генератор штампа<br>электронной подписи</h1>
+    <p class="subtitle">Создавайте графический блок сведений о сертификате ЭП по заданному образцу. Заполните реквизиты — результат обновится сразу.</p>
+  </header>
+  <main class="workspace">
+    <section class="panel" aria-label="Данные сертификата">
+      <div class="panelhead"><h2>Данные сертификата</h2><button type="button" id="reset" class="outline">Сбросить</button></div>
+      <div class="fields">
+        <div class="field"><label for="number">Номер сертификата</label><input id="number" autocomplete="off" spellcheck="false" maxlength="120" value="4444-AAAAA-444-AAAA-AAAA-AAA44" placeholder="Введите номер сертификата"></div>
+        <div class="field"><label for="owner">Владелец сертификата</label><input id="owner" maxlength="140" value="Фамилия Имя Отчество" placeholder="Фамилия Имя Отчество"></div>
+        <div class="field"><label for="position">Должность / организация</label><input id="position" maxlength="140" value="Должность / Организация" placeholder="Укажите должность или организацию"></div>
+        <div class="field"><label>Срок действия сертификата</label>
+          <div class="dategrid">
+            <div><label for="start" style="font-size:12px;color:#768295;font-weight:500">Действителен с</label><input type="date" id="start" value="2026-03-16"></div>
+            <div><label for="end" style="font-size:12px;color:#768295;font-weight:500">Действителен по</label><input type="date" id="end" value="2027-03-16"></div>
+          </div>
+          <div class="error" id="dateError" role="alert">Дата окончания должна быть не раньше даты начала.</div>
+        </div>
+        <p class="help">Все сведения вводятся вручную. Данные обрабатываются локально в браузере и не отправляются на сервер.</p>
+      </div>
+    </section>
+    <div>
+      <section class="panel previewPanel" aria-label="Предпросмотр и экспорт">
+        <div class="panelhead"><h2>Предпросмотр</h2><span class="minor">Пропорции оригинала · 650 × 310</span></div>
+        <div class="stage"><div class="paper">
+          <svg id="stamp" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 310" width="650" height="310" role="img" aria-label="Штамп документа с электронной подписью">
+            <rect width="650" height="310" fill="#ffffff"/>
+            <rect x="16.5" y="16.5" width="627" height="277" rx="48" fill="#ffffff" stroke="#050505" stroke-width="2"/>
+            <path d="M17 108.5H643V152.5H17Z" fill="#000000"/>
+            <g font-family="Arial, Helvetica, sans-serif" text-anchor="middle" fill="#000000">
+              <text x="330" y="57.5" font-size="28" font-weight="700">ДОКУМЕНТ ПОДПИСАН</text>
+              <text x="330" y="98.5" font-size="28" font-weight="700">ЭЛЕКТРОННОЙ ПОДПИСЬЮ</text>
+              <text x="330" y="140.5" font-size="27.5" font-weight="700" fill="#ffffff">СВЕДЕНИЯ О СЕРТИФИКАТЕ ЭП</text>
+              <text id="numberText" x="330" y="191.5" font-size="21" font-weight="400">Номер: 4444-AAAAA-444-AAAA-AAAA-AAA44</text>
+              <text id="ownerText" x="330" y="219.5" font-size="22" font-weight="700">Владелец: Фамилия Имя Отчество</text>
+              <text id="positionText" x="330" y="247.5" font-size="21" font-weight="700">Должность / Организация</text>
+              <text id="datesText" x="330" y="275.5" font-size="21" font-weight="700">Действителен с 16.03.2026 по 16.03.2027</text>
+            </g>
+          </svg>
+        </div><div class="substage">Предпросмотр графического штампа · белый фон</div></div>
+        <div class="export">
+          <div class="exporthead"><strong>Сохранить результат</strong><div class="quality"><label for="scale">Качество PNG</label><select id="scale"><option value="1">1× · 650 px</option><option value="2">2× · 1300 px</option><option value="4" selected>4× · 2600 px</option></select></div></div>
+          <div class="actions">
+            <button class="btn primary" id="png" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m-4-4 4 4 4-4M5 17v4h14v-4" stroke-linecap="round" stroke-linejoin="round"/></svg> Скачать PNG</button>
+            <button class="btn" id="svg" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m-4-4 4 4 4-4M5 17v4h14v-4" stroke-linecap="round" stroke-linejoin="round"/></svg> Скачать SVG</button>
+            <button class="btn" id="pdf" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V3h12v6M6 18H4v-9h16v9h-2M6 15h12v6H6z" stroke-linecap="round" stroke-linejoin="round"/></svg> Печать / PDF</button>
+          </div>
+        </div>
+      </section>
+      <div class="notice"><b>Обратите внимание.</b> Этот инструмент формирует только изображение штампа с введёнными реквизитами. Он не подписывает документ криптографической ЭП, не проверяет сертификат и не подтверждает подлинность подписи.</div>
+    </div>
+  </main>
+  <footer class="footer">Графический генератор штампов ЭП · работает без подключения к интернету</footer>
+</div>
+<script>
+(function(){
+  'use strict';
+  const ids=['number','owner','position','start','end'];
+  const inputs=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
+  const textEls={number:document.getElementById('numberText'),owner:document.getElementById('ownerText'),position:document.getElementById('positionText'),dates:document.getElementById('datesText')};
+  const svg=document.getElementById('stamp');
+  const example={number:'4444-AAAAA-444-AAAA-AAAA-AAA44',owner:'Фамилия Имя Отчество',position:'Должность / Организация',start:'2026-03-16',end:'2027-03-16'};
+  const safe=(v)=>v.trim()||'—';
+  const date=(v)=>/^\d{4}-\d{2}-\d{2}$/.test(v)?v.slice(8,10)+'.'+v.slice(5,7)+'.'+v.slice(0,4):'—';
+  function fit(text,initial,maxWidth){
+    text.removeAttribute('textLength');text.removeAttribute('lengthAdjust');text.setAttribute('font-size',initial);
+    let width=0;try{width=text.getComputedTextLength();}catch(e){}
+    if(width>maxWidth){
+      const smaller=Math.max(11,initial*maxWidth/width);
+      text.setAttribute('font-size',smaller.toFixed(2));
+      // For extremely long values, fit full content without clipping, retaining readability when possible.
+      if(smaller===11 && text.getComputedTextLength()>maxWidth){text.setAttribute('textLength',maxWidth);text.setAttribute('lengthAdjust','spacingAndGlyphs');}
+    }
+  }
+  function render(){
+    textEls.number.textContent='Номер: '+safe(inputs.number.value);
+    textEls.owner.textContent='Владелец: '+safe(inputs.owner.value);
+    textEls.position.textContent=safe(inputs.position.value);
+    textEls.dates.textContent='Действителен с '+date(inputs.start.value)+' по '+date(inputs.end.value);
+    fit(textEls.number,21,545);fit(textEls.owner,22,565);fit(textEls.position,21,565);fit(textEls.dates,21,565);
+    const valid=!!inputs.start.value && !!inputs.end.value && inputs.end.value >= inputs.start.value;
+    document.getElementById('dateError').classList.toggle('active',!valid);
+    document.querySelectorAll('#png,#svg,#pdf').forEach(btn=>btn.disabled=!valid);
+    return valid;
+  }
+  ids.forEach(id=>inputs[id].addEventListener('input',render));
+  document.getElementById('reset').addEventListener('click',()=>{Object.entries(example).forEach(([id,value])=>inputs[id].value=value);render();});
+  const getMarkup=()=>{
+    render();
+    const clone=svg.cloneNode(true);clone.setAttribute('width','650');clone.setAttribute('height','310');
+    clone.removeAttribute('role');clone.removeAttribute('aria-label');clone.removeAttribute('id');
+    for(const element of clone.querySelectorAll('[id]'))element.removeAttribute('id');
+    return '<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(clone);
+  };
+  function download(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);}
+  const fileName=()=>('stamp-ep-'+(inputs.number.value.trim().replace(/[^a-zа-яё0-9_-]+/gi,'-').slice(0,55)||'certificate'));
+  document.getElementById('svg').addEventListener('click',()=>download(new Blob([getMarkup()],{type:'image/svg+xml;charset=utf-8'}),fileName()+'.svg'));
+  document.getElementById('png').addEventListener('click',()=>{
+    if(!render())return;
+    const scale=Number(document.getElementById('scale').value),markup=getMarkup(),blob=new Blob([markup],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob),img=new Image();
+    img.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=650*scale;canvas.height=310*scale;const ctx=canvas.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);canvas.toBlob(result=>{if(result)download(result,fileName()+'.png');else alert('Не удалось сохранить PNG. Попробуйте другой браузер.');},'image/png');}catch(error){console.error(error);alert('Ошибка сохранения PNG. Попробуйте скачать SVG.');}finally{URL.revokeObjectURL(url);}};
+    img.onerror=()=>{URL.revokeObjectURL(url);alert('Не удалось подготовить изображение.');};img.src=url;
+  });
+  document.getElementById('pdf').addEventListener('click',()=>{if(render())window.print();});
+  render();
+})();
+</script>
+</body>
+</html>
